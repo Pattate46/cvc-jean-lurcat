@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CVC Jean Lurçat</title>
+<style>
+body{font-family:Arial;background:#f4f4f4;padding:20px}
+.container{background:white;padding:20px;border-radius:10px;max-width:800px;margin:auto}
+input,textarea,button{width:100%;padding:10px;margin-top:10px}
+.proposal{border:1px solid #ccc;padding:10px;margin-top:10px;border-radius:5px}
+button{background:#003b7a;color:white;border:none}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>CVC - Collège Jean Lurçat</h1>
+
+<input type="password" id="pwd" placeholder="Mot de passe">
+<button onclick="login()">Connexion</button>
+
+<div id="app" style="display:none">
+
+<h2>Ajouter un projet</h2>
+<input id="title" placeholder="Titre">
+<textarea id="desc" placeholder="Description"></textarea>
+<button onclick="add()">Ajouter</button>
+
+<h2>Projets</h2>
+<div id="list"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const sitePwd="1234";
+const adminPwd="cvc46";
+
+let data = JSON.parse(localStorage.getItem("data")||"[]");
+
+function login(){
+if(pwd.value===sitePwd){
+app.style.display="block";
+load();
+}else alert("Erreur");
+}
+
+function add(){
+data.push({title:title.value,desc:desc.value,votes:0,voted:false});
+save();load();
+}
+
+function vote(i){
+if(data[i].voted){alert("Déjà voté");return;}
+data[i].votes++;data[i].voted=true;
+save();load();
+}
+
+function del(i){
+if(prompt("Admin")!==adminPwd)return;
+data.splice(i,1);save();load();
+}
+
+function load(){
+list.innerHTML="";
+data.forEach((p,i)=>{
+list.innerHTML+=`
+<div class="proposal">
+<h3>${p.title}</h3>
+<p>${p.desc}</p>
+<p>Votes:${p.votes}</p>
+<button onclick="vote(${i})">Voter</button>
+<button onclick="del(${i})">Supprimer</button>
+</div>`;
+});
+}
+
+function save(){
+localStorage.setItem("data",JSON.stringify(data));
+}
+
+load();
+
+</script>
+
+</body>
+</html>
