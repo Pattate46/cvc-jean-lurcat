@@ -2,29 +2,72 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CVC Jean Lurçat</title>
+<title>CVC - Collège Jean Lurçat</title>
+
 <style>
-body{font-family:Arial;background:#f4f4f4;padding:20px}
-.container{background:white;padding:20px;border-radius:10px;max-width:800px;margin:auto}
-input,textarea,button{width:100%;padding:10px;margin-top:10px}
-.proposal{border:1px solid #ccc;padding:10px;margin-top:10px;border-radius:5px}
-button{background:#003b7a;color:white;border:none}
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#0a3d62,#3c6382);
+margin:0;
+color:white;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:white;
+color:black;
+padding:15px;
+margin-top:10px;
+border-radius:10px;
+}
+
+input,textarea{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+border:none;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+background:#1e90ff;
+color:white;
+}
+
+button:hover{
+background:#3742fa;
+}
 </style>
+
 </head>
+
 <body>
 
 <div class="container">
 
-<h1>CVC - Collège Jean Lurçat</h1>
+<h1>🎓 CVC - Collège Jean Lurçat</h1>
 
 <input type="password" id="pwd" placeholder="Mot de passe">
 <button onclick="login()">Connexion</button>
 
 <div id="app" style="display:none">
 
-<h2>Ajouter un projet</h2>
-<input id="title" placeholder="Titre">
+<h2>Proposer un projet</h2>
+
+<input id="title" placeholder="Titre du projet">
 <textarea id="desc" placeholder="Description"></textarea>
+
 <button onclick="add()">Ajouter</button>
 
 <h2>Projets</h2>
@@ -33,6 +76,8 @@ button{background:#003b7a;color:white;border:none}
 </div>
 
 </div>
+
+<script>
 
 const sitePwd = "1234";
 const adminPwd = "cvc46";
@@ -43,16 +88,18 @@ function login(){
 if(document.getElementById("pwd").value === sitePwd){
 document.getElementById("app").style.display="block";
 load();
-}else alert("Erreur");
+}else{
+alert("Mot de passe incorrect");
+}
 }
 
-/* AJOUT */
+/* AJOUT PROJET */
 function add(){
 const t = document.getElementById("title").value;
 const d = document.getElementById("desc").value;
 
 if(!t || !d){
-alert("Remplis tout");
+alert("Remplis tous les champs");
 return;
 }
 
@@ -60,6 +107,7 @@ data.push({
 title:t,
 desc:d,
 votes:0,
+voted:false,
 responses:[]
 });
 
@@ -73,7 +121,7 @@ desc.value="";
 /* VOTE */
 function vote(i){
 if(data[i].voted){
-alert("Déjà voté");
+alert("Déjà voté !");
 return;
 }
 
@@ -84,7 +132,7 @@ save();
 load();
 }
 
-/* SUPPRIMER (ADMIN) */
+/* SUPPRESSION ADMIN */
 function del(i){
 const p = prompt("Mot de passe admin");
 
@@ -98,7 +146,7 @@ save();
 load();
 }
 
-/* RÉPONDRE (ADMIN) */
+/* RÉPONSE ADMIN */
 function reply(i){
 const p = prompt("Mot de passe admin");
 
@@ -107,7 +155,7 @@ alert("Accès refusé");
 return;
 }
 
-const r = prompt("Réponse :");
+const r = prompt("Ta réponse :");
 
 if(!r) return;
 
@@ -136,11 +184,11 @@ list.innerHTML += `
 <div class="card">
 <h3>${p.title}</h3>
 <p>${p.desc}</p>
-<p>Votes : ${p.votes}</p>
+<p>👍 Votes : ${p.votes}</p>
 
 <button onclick="vote(${i})">Voter</button>
-<button onclick="reply(${i})">Répondre</button>
-<button onclick="del(${i})">Supprimer</button>
+<button onclick="reply(${i})">Répondre (admin)</button>
+<button onclick="del(${i})">Supprimer (admin)</button>
 
 ${responsesHTML}
 </div>
@@ -148,11 +196,14 @@ ${responsesHTML}
 });
 }
 
+/* SAUVEGARDE */
 function save(){
-localStorage.setItem("data",JSON.stringify(data));
+localStorage.setItem("data", JSON.stringify(data));
 }
 
 load();
+
+</script>
 
 </body>
 </html>
