@@ -1,5 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CVC - Collège Jean Lurçat</title>
+
+<style>
+body{
+font-family:Arial;
+background:#0a3d62;
+color:white;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+.card{
+background:white;
+color:black;
+padding:15px;
+margin-top:10px;
+border-radius:10px;
+}
+
+input,textarea,button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+border:none;
+}
+
+button{
+background:#1e90ff;
+color:white;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎓 CVC Jean Lurçat</h1>
+
+<input type="password" id="pwd" placeholder="Mot de passe">
+<button onclick="login()">Connexion</button>
+
+<div id="app" style="display:none">
+
+<h2>Ajouter un projet</h2>
+
+<input id="title" placeholder="Titre">
+<textarea id="desc" placeholder="Description"></textarea>
+
+<button onclick="add()">Ajouter</button>
+
+<h2>Projets</h2>
+<div id="list"></div>
+
+</div>
+
+</div>
+
+<script>
+
 const SUPABASE_URL = "https://ryrsuokvoqqtnxihicuk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5cnN1b2t2b3FxdG54aWhpY3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTQyMjQsImV4cCI6MjA5NDMzMDIyNH0.IbigxkTdPsqT47QoH_1_u124rhpU_QUoWqWYUD6NzZs";
+const SUPABASE_KEY = "TA_CLE_ANON";
 
 const sitePwd = "1234";
 const adminPwd = "cvc46";
@@ -14,7 +85,7 @@ alert("Mot de passe incorrect");
 }
 }
 
-/* CHARGER DONNÉES */
+/* CHARGER */
 async function load(){
 
 const res = await fetch(SUPABASE_URL + "/rest/v1/proposals?select=*",
@@ -26,7 +97,6 @@ Authorization:"Bearer "+SUPABASE_KEY
 });
 
 const data = await res.json();
-
 render(data);
 }
 
@@ -36,15 +106,6 @@ const list = document.getElementById("list");
 list.innerHTML="";
 
 data.forEach(p=>{
-
-let responsesHTML = "";
-
-if(p.responses){
-p.responses.forEach(r=>{
-responsesHTML += `<p>💬 ${r}</p>`;
-});
-}
-
 list.innerHTML += `
 <div class="card">
 <h3>${p.title}</h3>
@@ -52,23 +113,21 @@ list.innerHTML += `
 <p>👍 Votes : ${p.votes}</p>
 
 <button onclick="vote(${p.id},${p.votes})">Voter</button>
-<button onclick="reply(${p.id})">Répondre (admin)</button>
-<button onclick="del(${p.id})">Supprimer (admin)</button>
-
-${responsesHTML}
+<button onclick="reply(${p.id})">Répondre</button>
+<button onclick="del(${p.id})">Supprimer</button>
 </div>
 `;
 });
 }
 
-/* AJOUT PROJET */
+/* AJOUT */
 async function add(){
 
 const t = document.getElementById("title").value;
 const d = document.getElementById("desc").value;
 
 if(!t || !d){
-alert("Remplis tous les champs");
+alert("Remplis tout");
 return;
 }
 
@@ -87,9 +146,6 @@ responses:[]
 })
 });
 
-document.getElementById("title").value="";
-document.getElementById("desc").value="";
-
 load();
 }
 
@@ -97,7 +153,7 @@ load();
 async function vote(id,votes){
 
 if(localStorage.getItem("v"+id)){
-alert("Déjà voté !");
+alert("Déjà voté");
 return;
 }
 
@@ -148,12 +204,10 @@ alert("Accès refusé");
 return;
 }
 
-const r = prompt("Ta réponse :");
+const r = prompt("Réponse :");
 
-if(!r) return;
-
-/* on récupère les anciennes réponses */
-const res = await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,{
+const res = await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,
+{
 headers:{
 apikey: SUPABASE_KEY,
 Authorization:"Bearer "+SUPABASE_KEY
@@ -165,7 +219,6 @@ let responses = data[0].responses || [];
 
 responses.push(r);
 
-/* update */
 await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,{
 method:"PATCH",
 headers:{
@@ -180,3 +233,8 @@ responses:responses
 
 load();
 }
+
+</script>
+
+</body>
+</html>
