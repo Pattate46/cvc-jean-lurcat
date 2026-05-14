@@ -45,7 +45,7 @@ cursor:pointer;
 
 <div class="container">
 
-<h1>🎓 CVC - Collège Jean Lurçat</h1>
+<h1>🎓 CVC Jean Lurçat</h1>
 
 <input type="password" id="pwd" placeholder="Mot de passe">
 <button onclick="login()">Connexion</button>
@@ -99,7 +99,7 @@ const data = await res.json();
 render(data);
 }
 
-/* AFFICHAGE */
+/* RENDER */
 function render(data){
 const list = document.getElementById("list");
 list.innerHTML="";
@@ -186,7 +186,7 @@ localStorage.setItem("v"+id,true);
 load();
 }
 
-/* DELETE ADMIN */
+/* DELETE */
 async function del(id){
 
 const p = prompt("Mot de passe admin");
@@ -207,7 +207,7 @@ Authorization:"Bearer "+SUPABASE_KEY
 load();
 }
 
-/* REPLY ADMIN */
+/* REPLY */
 async function reply(id){
 
 const p = prompt("Mot de passe admin");
