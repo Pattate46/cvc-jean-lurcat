@@ -34,47 +34,117 @@ button{background:#003b7a;color:white;border:none}
 
 </div>
 
-<script>
+const sitePwd = "1234";
+const adminPwd = "cvc46";
 
-const sitePwd="1234";
-const adminPwd="cvc46";
-
-let data = JSON.parse(localStorage.getItem("data")||"[]");
+let data = JSON.parse(localStorage.getItem("data") || "[]");
 
 function login(){
-if(pwd.value===sitePwd){
-app.style.display="block";
+if(document.getElementById("pwd").value === sitePwd){
+document.getElementById("app").style.display="block";
 load();
 }else alert("Erreur");
 }
 
+/* AJOUT */
 function add(){
-data.push({title:title.value,desc:desc.value,votes:0,voted:false});
-save();load();
+const t = document.getElementById("title").value;
+const d = document.getElementById("desc").value;
+
+if(!t || !d){
+alert("Remplis tout");
+return;
 }
 
+data.push({
+title:t,
+desc:d,
+votes:0,
+responses:[]
+});
+
+save();
+load();
+
+title.value="";
+desc.value="";
+}
+
+/* VOTE */
 function vote(i){
-if(data[i].voted){alert("Déjà voté");return;}
-data[i].votes++;data[i].voted=true;
-save();load();
+if(data[i].voted){
+alert("Déjà voté");
+return;
 }
 
+data[i].votes++;
+data[i].voted = true;
+
+save();
+load();
+}
+
+/* SUPPRIMER (ADMIN) */
 function del(i){
-if(prompt("Admin")!==adminPwd)return;
-data.splice(i,1);save();load();
+const p = prompt("Mot de passe admin");
+
+if(p !== adminPwd){
+alert("Accès refusé");
+return;
 }
 
+data.splice(i,1);
+save();
+load();
+}
+
+/* RÉPONDRE (ADMIN) */
+function reply(i){
+const p = prompt("Mot de passe admin");
+
+if(p !== adminPwd){
+alert("Accès refusé");
+return;
+}
+
+const r = prompt("Réponse :");
+
+if(!r) return;
+
+data[i].responses.push(r);
+
+save();
+load();
+}
+
+/* AFFICHAGE */
 function load(){
+const list = document.getElementById("list");
 list.innerHTML="";
+
 data.forEach((p,i)=>{
-list.innerHTML+=`
-<div class="proposal">
+
+let responsesHTML = "";
+
+if(p.responses){
+p.responses.forEach(r=>{
+responsesHTML += `<p>💬 ${r}</p>`;
+});
+}
+
+list.innerHTML += `
+<div class="card">
 <h3>${p.title}</h3>
 <p>${p.desc}</p>
-<p>Votes:${p.votes}</p>
+<p>Votes : ${p.votes}</p>
+
 <button onclick="vote(${i})">Voter</button>
+<button onclick="reply(${i})">Répondre</button>
 <button onclick="del(${i})">Supprimer</button>
-</div>`;
+
+${responsesHTML}
+</div>
+`;
 });
 }
 
@@ -83,8 +153,6 @@ localStorage.setItem("data",JSON.stringify(data));
 }
 
 load();
-
-</script>
 
 </body>
 </html>
