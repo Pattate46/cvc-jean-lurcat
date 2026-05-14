@@ -2,14 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CVC - Collège Jean Lurçat</title>
+<title>CVC Jean Lurçat</title>
 
 <style>
 body{
 font-family:Arial;
 background:#0a3d62;
 color:white;
-margin:0;
 padding:20px;
 }
 
@@ -46,7 +45,7 @@ cursor:pointer;
 
 <div class="container">
 
-<h1>🎓 CVC Jean Lurçat</h1>
+<h1>🎓 CVC - Collège Jean Lurçat</h1>
 
 <input type="password" id="pwd" placeholder="Mot de passe">
 <button onclick="login()">Connexion</button>
@@ -85,7 +84,7 @@ alert("Mot de passe incorrect");
 }
 }
 
-/* CHARGER */
+/* LOAD */
 async function load(){
 
 const res = await fetch(SUPABASE_URL + "/rest/v1/proposals?select=*",
@@ -106,6 +105,15 @@ const list = document.getElementById("list");
 list.innerHTML="";
 
 data.forEach(p=>{
+
+let responsesHTML = "";
+
+if(p.responses){
+p.responses.forEach(r=>{
+responsesHTML += `<p>💬 ${r}</p>`;
+});
+}
+
 list.innerHTML += `
 <div class="card">
 <h3>${p.title}</h3>
@@ -113,21 +121,23 @@ list.innerHTML += `
 <p>👍 Votes : ${p.votes}</p>
 
 <button onclick="vote(${p.id},${p.votes})">Voter</button>
-<button onclick="reply(${p.id})">Répondre</button>
-<button onclick="del(${p.id})">Supprimer</button>
+<button onclick="reply(${p.id})">Répondre (admin)</button>
+<button onclick="del(${p.id})">Supprimer (admin)</button>
+
+${responsesHTML}
 </div>
 `;
 });
 }
 
-/* AJOUT */
+/* ADD */
 async function add(){
 
 const t = document.getElementById("title").value;
 const d = document.getElementById("desc").value;
 
 if(!t || !d){
-alert("Remplis tout");
+alert("Remplis tous les champs");
 return;
 }
 
@@ -146,6 +156,9 @@ responses:[]
 })
 });
 
+document.getElementById("title").value="";
+document.getElementById("desc").value="";
+
 load();
 }
 
@@ -153,7 +166,7 @@ load();
 async function vote(id,votes){
 
 if(localStorage.getItem("v"+id)){
-alert("Déjà voté");
+alert("Déjà voté !");
 return;
 }
 
@@ -173,7 +186,7 @@ localStorage.setItem("v"+id,true);
 load();
 }
 
-/* SUPPRESSION ADMIN */
+/* DELETE ADMIN */
 async function del(id){
 
 const p = prompt("Mot de passe admin");
@@ -194,7 +207,7 @@ Authorization:"Bearer "+SUPABASE_KEY
 load();
 }
 
-/* RÉPONSE ADMIN */
+/* REPLY ADMIN */
 async function reply(id){
 
 const p = prompt("Mot de passe admin");
@@ -206,8 +219,7 @@ return;
 
 const r = prompt("Réponse :");
 
-const res = await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,
-{
+const res = await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,{
 headers:{
 apikey: SUPABASE_KEY,
 Authorization:"Bearer "+SUPABASE_KEY
