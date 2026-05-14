@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CVC - Collège Jean Lurçat</title>
+<title>CVC Temps Réel</title>
 
 <style>
 body{
 font-family:Arial;
 background:linear-gradient(135deg,#0a3d62,#3c6382);
-margin:0;
 color:white;
+margin:0;
 }
 
 .container{
@@ -26,37 +26,27 @@ margin-top:10px;
 border-radius:10px;
 }
 
-input,textarea{
+input,textarea,button{
 width:100%;
 padding:10px;
 margin-top:10px;
-border-radius:5px;
 border:none;
+border-radius:5px;
 }
 
 button{
-width:100%;
-padding:10px;
-margin-top:10px;
-border:none;
-border-radius:5px;
-cursor:pointer;
 background:#1e90ff;
 color:white;
-}
-
-button:hover{
-background:#3742fa;
+cursor:pointer;
 }
 </style>
-
 </head>
 
 <body>
 
 <div class="container">
 
-<h1>🎓 CVC - Collège Jean Lurçat</h1>
+<h1>🎓 CVC - Temps réel</h1>
 
 <input type="password" id="pwd" placeholder="Mot de passe">
 <button onclick="login()">Connexion</button>
@@ -65,7 +55,7 @@ background:#3742fa;
 
 <h2>Proposer un projet</h2>
 
-<input id="title" placeholder="Titre du projet">
+<input id="title" placeholder="Titre">
 <textarea id="desc" placeholder="Description"></textarea>
 
 <button onclick="add()">Ajouter</button>
@@ -79,129 +69,93 @@ background:#3742fa;
 
 <script>
 
+const SUPABASE_URL = "https://TONPROJET.supabase.co";
+const SUPABASE_KEY = "TA_CLE_ANON";
+
 const sitePwd = "1234";
 const adminPwd = "cvc46";
 
-let data = JSON.parse(localStorage.getItem("data") || "[]");
-
 function login(){
-if(document.getElementById("pwd").value === sitePwd){
+if(pwd.value === sitePwd){
 document.getElementById("app").style.display="block";
 load();
-}else{
-alert("Mot de passe incorrect");
-}
-}
-
-/* AJOUT PROJET */
-function add(){
-const t = document.getElementById("title").value;
-const d = document.getElementById("desc").value;
-
-if(!t || !d){
-alert("Remplis tous les champs");
-return;
+setInterval(load, 3000); // 🔥 synchro temps réel
+}else alert("Erreur");
 }
 
-data.push({
-title:t,
-desc:d,
-votes:0,
-voted:false,
-responses:[]
-});
+/* CHARGER (SYNC GLOBAL) */
+async function load(){
 
-save();
-load();
-
-title.value="";
-desc.value="";
+const res = await fetch(
+SUPABASE_URL + "/rest/v1/proposals?select=*",
+{
+headers:{
+apikey: SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY
 }
-
-/* VOTE */
-function vote(i){
-if(data[i].voted){
-alert("Déjà voté !");
-return;
 }
+);
 
-data[i].votes++;
-data[i].voted = true;
+const data = await res.json();
 
-save();
-load();
-}
-
-/* SUPPRESSION ADMIN */
-function del(i){
-const p = prompt("Mot de passe admin");
-
-if(p !== adminPwd){
-alert("Accès refusé");
-return;
-}
-
-data.splice(i,1);
-save();
-load();
-}
-
-/* RÉPONSE ADMIN */
-function reply(i){
-const p = prompt("Mot de passe admin");
-
-if(p !== adminPwd){
-alert("Accès refusé");
-return;
-}
-
-const r = prompt("Ta réponse :");
-
-if(!r) return;
-
-data[i].responses.push(r);
-
-save();
-load();
-}
-
-/* AFFICHAGE */
-function load(){
-const list = document.getElementById("list");
 list.innerHTML="";
 
-data.forEach((p,i)=>{
-
-let responsesHTML = "";
-
-if(p.responses){
-p.responses.forEach(r=>{
-responsesHTML += `<p>💬 ${r}</p>`;
-});
-}
-
+data.forEach(p=>{
 list.innerHTML += `
 <div class="card">
 <h3>${p.title}</h3>
-<p>${p.desc}</p>
+<p>${p.description}</p>
 <p>👍 Votes : ${p.votes}</p>
 
-<button onclick="vote(${i})">Voter</button>
-<button onclick="reply(${i})">Répondre (admin)</button>
-<button onclick="del(${i})">Supprimer (admin)</button>
-
-${responsesHTML}
+<button onclick="vote(${p.id},${p.votes})">Voter</button>
 </div>
 `;
 });
 }
 
-/* SAUVEGARDE */
-function save(){
-localStorage.setItem("data", JSON.stringify(data));
-}
+/* AJOUT PROJET */
+async function add(){
+
+await fetch(SUPABASE_URL + "/rest/v1/proposals",{
+method:"POST",
+headers:{
+apikey: SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+title:title.value,
+description:desc.value,
+votes:0
+})
+});
 
 load();
+}
+
+/* VOTE GLOBAL */
+async function vote(id,votes){
+
+if(localStorage.getItem("v"+id)){
+alert("Déjà voté");
+return;
+}
+
+await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,{
+method:"PATCH",
+headers:{
+apikey: SUPABASE_KEY,
+Authorization:"Bearer "+SUPABASE_KEY,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+votes:votes+1
+})
+});
+
+localStorage.setItem("v"+id,true);
+load();
+}
 
 </script>
 
