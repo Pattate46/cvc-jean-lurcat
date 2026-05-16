@@ -2,19 +2,21 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>CVC Jean Lurçat</title>
+<title>CVC du Collège Jean Lurçat</title>
 
 <style>
+
 body{
 font-family:Arial;
-background:#0a3d62;
+background:linear-gradient(135deg,#0a3d62,#3c6382);
+margin:0;
 color:white;
-padding:20px;
 }
 
 .container{
 max-width:900px;
 margin:auto;
+padding:20px;
 }
 
 .card{
@@ -23,43 +25,96 @@ color:black;
 padding:15px;
 margin-top:10px;
 border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.2);
+position:relative;
+overflow:hidden;
 }
 
-input,textarea,button{
+.rainbow{
+border-left:10px solid transparent;
+background:
+linear-gradient(white,white) padding-box,
+linear-gradient(
+180deg,
+red,
+orange,
+yellow,
+green,
+blue,
+indigo,
+violet
+) border-box;
+border-left:10px solid transparent;
+}
+
+input,textarea,select{
 width:100%;
 padding:10px;
 margin-top:10px;
 border-radius:5px;
 border:none;
+box-sizing:border-box;
+font-size:16px;
 }
 
 button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:5px;
+cursor:pointer;
 background:#1e90ff;
 color:white;
-cursor:pointer;
+font-size:16px;
+transition:0.2s;
 }
+
+button:hover{
+background:#3742fa;
+}
+
+h1,h2{
+text-align:center;
+}
+
 </style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-<h1>🎓 CVC Jean Lurçat</h1>
+<h1>🎓 CVC du Collège Jean Lurçat</h1>
 
 <input type="password" id="pwd" placeholder="Mot de passe">
+
 <button onclick="login()">Connexion</button>
 
 <div id="app" style="display:none">
 
-<h2>Ajouter un projet</h2>
+<h2>Proposer un projet / journée à thème</h2>
 
-<input id="title" placeholder="Titre">
+<input id="title" placeholder="Titre du projet">
+
 <textarea id="desc" placeholder="Description"></textarea>
 
-<button onclick="add()">Ajouter</button>
+<label>Choisir une couleur :</label>
 
-<h2>Projets</h2>
+<select id="color">
+<option value="#1e90ff">🔵 Bleu</option>
+<option value="#ff4757">🔴 Rouge</option>
+<option value="#ff6bcb">🩷 Rose</option>
+<option value="#2ed573">🟢 Vert</option>
+<option value="#f1c40f">🟡 Jaune</option>
+<option value="rainbow">🌈 Arc-en-ciel</option>
+</select>
+
+<button onclick="add()">📨 Proposer</button>
+
+<h2>💬 Chat</h2>
+
 <div id="list"></div>
 
 </div>
@@ -68,184 +123,276 @@ cursor:pointer;
 
 <script>
 
-const SUPABASE_URL = "https://ryrsuokvoqqtnxihicuk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5cnN1b2t2b3FxdG54aWhpY3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTQyMjQsImV4cCI6MjA5NDMzMDIyNH0.IbigxkTdPsqT47QoH_1_u124rhpU_QUoWqWYUD6NzZs";
+/* MOTS DE PASSE */
 
 const sitePwd = "1234";
 const adminPwd = "cvc46";
 
-/* LOGIN */
+/* DONNÉES */
+
+let data = JSON.parse(localStorage.getItem("data") || "[]");
+
+/* CONNEXION */
+
 function login(){
+
 if(document.getElementById("pwd").value === sitePwd){
-document.getElementById("app").style.display="block";
+
+document.getElementById("app").style.display = "block";
+
 load();
+
 }else{
+
 alert("Mot de passe incorrect");
-}
-}
 
-/* LOAD */
-async function load(){
-
-const res = await fetch(SUPABASE_URL + "/rest/v1/proposals?select=*",
-{
-headers:{
-apikey: SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY
-}
-});
-
-const data = await res.json();
-render(data);
 }
 
-/* RENDER */
-function render(data){
-const list = document.getElementById("list");
-list.innerHTML="";
-
-data.forEach(p=>{
-
-let responsesHTML = "";
-
-if(p.responses){
-p.responses.forEach(r=>{
-responsesHTML += `<p>💬 ${r}</p>`;
-});
 }
 
-list.innerHTML += `
-<div class="card">
-<h3>${p.title}</h3>
-<p>${p.description}</p>
-<p>👍 Votes : ${p.votes}</p>
+/* AJOUT MESSAGE */
 
-<button onclick="vote(${p.id},${p.votes})">Voter</button>
-<button onclick="reply(${p.id})">Répondre (admin)</button>
-<button onclick="del(${p.id})">Supprimer (admin)</button>
-
-${responsesHTML}
-</div>
-`;
-});
-}
-
-/* ADD */
-async function add(){
+function add(){
 
 const t = document.getElementById("title").value;
 const d = document.getElementById("desc").value;
+const c = document.getElementById("color").value;
 
 if(!t || !d){
+
 alert("Remplis tous les champs");
 return;
+
 }
 
-await fetch(SUPABASE_URL + "/rest/v1/proposals",{
-method:"POST",
-headers:{
-apikey: SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
+/* DEMANDE CODE ARC-EN-CIEL */
+
+if(c === "rainbow"){
+
+const code = prompt("Entre le code secret pour utiliser la couleur arc-en-ciel");
+
+if(code !== "cvc46"){
+
+alert("Mauvais code. Publication refusée.");
+return;
+
+}else{
+
+alert("Code correct ! Publication autorisée 🌈");
+
+}
+
+}
+
+data.push({
+
 title:t,
-description:d,
-votes:0,
+desc:d,
+color:c,
 responses:[]
-})
+
 });
 
-document.getElementById("title").value="";
-document.getElementById("desc").value="";
-
+save();
 load();
+
+/* RESET */
+
+document.getElementById("title").value = "";
+document.getElementById("desc").value = "";
+
 }
 
-/* VOTE */
-async function vote(id,votes){
+/* SUPPRESSION ADMIN */
 
-if(localStorage.getItem("v"+id)){
-alert("Déjà voté !");
+function deleteMessage(i){
+
+const code = prompt("Entre le mot de passe admin pour supprimer");
+
+if(code === null){
+
 return;
+
 }
 
-await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,{
-method:"PATCH",
-headers:{
-apikey: SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-votes:votes+1
-})
-});
+if(code !== adminPwd){
 
-localStorage.setItem("v"+id,true);
+alert("Mot de passe incorrect");
+return;
+
+}
+
+const confirmDelete = confirm("Veux-tu vraiment supprimer ce message ?");
+
+if(!confirmDelete){
+
+return;
+
+}
+
+data.splice(i,1);
+
+save();
+
 load();
+
+alert("Message supprimé");
+
 }
 
-/* DELETE */
-async function del(id){
+/* RÉPONSE ADMIN */
+
+function reply(i){
 
 const p = prompt("Mot de passe admin");
 
 if(p !== adminPwd){
+
 alert("Accès refusé");
 return;
+
 }
 
-await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,{
-method:"DELETE",
-headers:{
-apikey: SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY
+const r = prompt("Ta réponse :");
+
+if(!r) return;
+
+data[i].responses.push(r);
+
+save();
+load();
+
 }
+
+/* AFFICHAGE */
+
+function load(){
+
+const list = document.getElementById("list");
+
+list.innerHTML = "";
+
+/* PLUS RÉCENT EN HAUT */
+
+for(let i = data.length - 1; i >= 0; i--){
+
+const p = data[i];
+
+/* CRÉATION CARTE */
+
+const card = document.createElement("div");
+
+card.className = "card";
+
+/* COULEUR */
+
+if(p.color === "rainbow"){
+
+card.classList.add("rainbow");
+
+}else{
+
+card.style.borderLeft = "10px solid " + p.color;
+
+}
+
+/* TITRE */
+
+const title = document.createElement("h3");
+
+title.textContent = p.title;
+
+card.appendChild(title);
+
+/* DESCRIPTION */
+
+const desc = document.createElement("p");
+
+desc.textContent = p.desc;
+
+card.appendChild(desc);
+
+/* RÉPONSES */
+
+if(p.responses){
+
+p.responses.forEach(r=>{
+
+const response = document.createElement("p");
+
+response.textContent = "💬 " + r;
+
+card.appendChild(response);
+
 });
+
+}
+
+/* BOUTON RÉPONDRE */
+
+const replyBtn = document.createElement("button");
+
+replyBtn.textContent = "Répondre (admin)";
+
+replyBtn.addEventListener("click", function(){
+
+reply(i);
+
+});
+
+card.appendChild(replyBtn);
+
+/* BOUTON SUPPRIMER */
+
+const delBtn = document.createElement("button");
+
+delBtn.textContent = "Supprimer (admin)";
+
+delBtn.addEventListener("click", function(){
+
+deleteMessage(i);
+
+});
+
+card.appendChild(delBtn);
+
+/* AJOUT À LA LISTE */
+
+list.appendChild(card);
+
+}
+
+}
+
+/* SAUVEGARDE LOCALSTORAGE */
+
+function save(){
+
+localStorage.setItem("data", JSON.stringify(data));
+
+}
+
+/* TÉLÉCHARGER SAUVEGARDE */
+
+function downloadSave(){
+
+const content = JSON.stringify(data, null, 2);
+
+const blob = new Blob([content], {type:"application/json"});
+
+const a = document.createElement("a");
+
+a.href = URL.createObjectURL(blob);
+
+a.download = "sauvegarde_cvc.json";
+
+a.click();
+
+}
+
+/* CHARGEMENT INITIAL */
 
 load();
-}
-
-/* REPLY */
-async function reply(id){
-
-const p = prompt("Mot de passe admin");
-
-if(p !== adminPwd){
-alert("Accès refusé");
-return;
-}
-
-const r = prompt("Réponse :");
-
-const res = await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,{
-headers:{
-apikey: SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY
-}
-});
-
-const data = await res.json();
-let responses = data[0].responses || [];
-
-responses.push(r);
-
-await fetch(SUPABASE_URL + "/rest/v1/proposals?id=eq."+id,{
-method:"PATCH",
-headers:{
-apikey: SUPABASE_KEY,
-Authorization:"Bearer "+SUPABASE_KEY,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-responses:responses
-  async function add(){ console.log("BOUTON AJOUT CLIQUÉ"); const t = document.getElementById("title").value; const d = document.getElementById("desc").value; console.log("Titre:", t); console.log("Description:", d); }
-})
-});
-
-load();
-}
 
 </script>
 
